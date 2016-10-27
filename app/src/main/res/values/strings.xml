@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">E-row</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_historique">Historique</string>
+    <string name="action_settings">Settings</string>
+    <string name="Add_New">Add New</string>
+    <string name="edit">Edit Contact</string>
+    <string name="delete">Supprimer la sortie</string>
+    <string name="title_activity_display_contact">DisplayContact</string>
+    <string name="name">Date</string>
+    <string name="phone">Distance</string>
+    <string name="email">Duree</string>
+    <string name="street">Stats</string>
+    <string name="country">Bateau</string>
+    <string name="save">Sauvegarder Sortie</string>
+    <string name="deleteContact">Attention, toute suppression est définitive.</string>
+    <string name="yes">Supprimer</string>
+    <string name="no">Annuler</string>
+</resources>
