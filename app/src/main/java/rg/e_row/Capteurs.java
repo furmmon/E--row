@@ -17,6 +17,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -50,13 +53,14 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
     private float previousAcc;
     private Boolean nouveauCoup = false;
     private float cadence;
-    private Long timeNouveauCoup;
+    private Long timeNouveauCoup=0L;
 
     //Variables de localisation
     private float vitesse;
     private double longitude;
     private double latitude;
-    private float distance;
+    //TODO gestion de la distance
+    private float distance=0;
 
     //Mise en forme des dates
     DecimalFormat df = new DecimalFormat("######.#");
@@ -77,6 +81,7 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
 
     @Override
     public void onCreate() {
+        Log.v("create","service creer");
         super.onCreate();
 
         mydb= new DBHelper(getApplicationContext());
@@ -86,14 +91,22 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+        sensorManager.registerListener(this,accelerometer,SensorManager.SENSOR_DELAY_NORMAL);
+        Log.v("create","capteurs init done");
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        Log.v("create",locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER).toString());
         //Si l'autorisation de localisation est donnée
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.v("create","lancement localisation");
+
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
     }
 
     @Override
     public void onDestroy() {
+        Log.v("create","destruction du service");
+
         //Destruction des listeners accelerometres et gps
         sensorManager.unregisterListener(this,accelerometer);
         sensorManager=null;
@@ -140,9 +153,13 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.v("create","nouvelle localisation gps");
+
         latitude=location.getLatitude();
         longitude=location.getLongitude();
         vitesse=location.getSpeed();
+        sendBroadcastMessage("vitesse",""+vitesse);
+
 
     }
 
@@ -166,6 +183,8 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
+        Log.v("create","acc detectee");
+
         Sensor mySensor = sensorEvent.sensor;
         float acc;
 
@@ -189,6 +208,7 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
                 registerMesure();
 
                 String textaffiche = ""+cadence;
+                sendBroadcastMessage("cadence",textaffiche);
             }
 
             if (nouveauCoup)
@@ -208,7 +228,6 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 
     public String formatDistance(float dist){
@@ -236,6 +255,14 @@ public class Capteurs extends Service implements LocationListener, SensorEventLi
             return totalTime / 1000 + "s";
         }
 
+    }
+
+    private void sendBroadcastMessage(String type,String text) {
+        if (text != null) {
+            Intent intent = new Intent("resultatMesure");
+            intent.putExtra("mesure", type+"-"+text);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        }
     }
 }
 

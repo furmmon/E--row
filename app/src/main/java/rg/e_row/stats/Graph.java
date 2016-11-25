@@ -49,11 +49,9 @@ public class Graph extends AppCompatActivity {
             //recuperation donnes
             Sortie sortie = mydb.getSortie(Value);
             mesures = mydb.getAllSortieMesures(sortie);
-
         }
 
         //graph
-
         GraphView graph = (GraphView) findViewById(R.id.graph);
         LineGraphSeries<DataPoint> serie_vitesse = new LineGraphSeries<>(generateDataVitesse()) ;
         LineGraphSeries<DataPoint> serie_cadence = new LineGraphSeries<>(generateDataCadence()) ;

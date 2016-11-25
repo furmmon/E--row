@@ -83,9 +83,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             LatLng loc = new LatLng(Double.parseDouble(mesure.getLatitude()),
                     Double.parseDouble(mesure.getLongitude()));
             poption.add(loc);
+            mMap.addMarker(new MarkerOptions().position(loc).title("oooh"));
+            /*
             mMap.addMarker(new MarkerOptions().position(loc).title("Vitesse "
                     + df.format(Float.parseFloat(mesure.getVitesse()))+"m/s ; Cadence "
-                    + df.format(Float.parseFloat(mesure.getCadence()))));
+                    + df.format(Float.parseFloat(mesure.getCadence()))));*/
          //   mMap.moveCamera(CameraUpdateFactory.newLatLng(loc));
         }
         googleMap.addPolyline(poption);

@@ -2,9 +2,11 @@ package rg.e_row;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
@@ -19,6 +21,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -58,6 +61,7 @@ public class Acquisition extends Activity /*implements LocationListener, SensorE
     private Chronometer chrono;
     private TextView dist;
     private TextView cad;
+    private TextView vit;
 
 
     /**
@@ -71,23 +75,44 @@ public class Acquisition extends Activity /*implements LocationListener, SensorE
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_acquisition);
 
+        dist = (TextView) findViewById(R.id.distanceview);
+        cad = (TextView) findViewById(R.id.cadence);
+        vit = (TextView) findViewById(R.id.vitesse);
+
         mydb = new DBHelper(this);
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 
-        dist = (TextView) findViewById(R.id.distanceview);
-        cad = (TextView) findViewById(R.id.cadence);
 
+        //Connection des TextView au service Capteurs
+        Intent intent = new Intent(this, Capteurs.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        Log.v("create", "bip cadence");
+                        String[] donneEnv = intent.getStringExtra("mesure").split("-");
+                        switch (donneEnv[0]){
+                            case "cadence" :
+                                cad.setText(donneEnv[1]);
+                                break;
+                            case "vitesse" :
+                                vit.setText(donneEnv[1]);
+                                break;
+                            case "distance" :
+                                dist.setText(donneEnv[1]);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }, new IntentFilter("resultatMesure")
+        );
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
-        Intent intent = new Intent(this, Capteurs.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-
-
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -147,7 +172,6 @@ public class Acquisition extends Activity /*implements LocationListener, SensorE
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
-            Toast.makeText(getApplicationContext(),"bip",Toast.LENGTH_LONG);
             Capteurs.LocalBinder binder = (Capteurs.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
@@ -155,8 +179,6 @@ public class Acquisition extends Activity /*implements LocationListener, SensorE
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            Toast.makeText(getApplicationContext(),"oooo",Toast.LENGTH_LONG);
-
             mBound = false;
         }
     };
